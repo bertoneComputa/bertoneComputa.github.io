@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U.S. Air Force</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Keep immersive full-height style */
+    }
+
+    .sections-container {
+      scroll-snap-type: y mandatory;
+      overflow-y: auto; /* Allows scroll up/down */
+      height: 100vh;
+      width: 100vw;
+      overscroll-behavior: contain;
+    }
+
+    .section {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      scroll-snap-align: start;
+    }
+
+    iframe {
+      width: 150%;
+      height: 150%;
+      border: none;
+      pointer-events: none; /* Prevent iframe from hijacking scroll by default */
+    }
+
+    .scroll-indicator,
+    .learn-more-indicator {
+      position: absolute;
+      bottom: 30px;
+      text-align: center;
+      color: white;
+      font-family: "Impact", "Courier New", monospace;
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+      opacity: 0.9;
+      animation: bounce 1.5s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(10px);
+      }
+    }
+
+    .logoplacement {
+      position: absolute;
+      top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 25px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 100px;
+    }
+
+    .card-container {
+      position: absolute;
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .card {
+      width: 400px;
+      height: 500px;
+      background-color: rgba(9,12,38,255);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      color: white;
+      font-family: "Impact", "Courier New", monospace;
+      font-size: 2rem;
+      text-transform: uppercase;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.4s ease;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .card img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.4;
+      border-radius: 20px;
+      transition: opacity 0.4s ease;
+    }
+
+    .card span {
+      z-index: 1;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      width: 100%;
+      text-align: center;
+      border-radius: 0 0 20px 20px;
+      font-family: "Impact", "Courier New", monospace;
+      font-size: 1.8rem;
+      color: white;
+      text-decoration: none;
+    }
+
+    .map-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .intro_text {
+        font-family: 'Times New Roman', Times, serif;
+        font-style: italic;
+        font-size: 3rem;
+        position: absolute;
+        text-align: center;
+        color: white;
+        top:100px
+    }
+
+    .main_text {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 2rem;
+        position: absolute;
+        text-align: center;
+        color: white;
+        top:200px
+    }
+
+    .section:nth-child(2) {
+    background-color: rgba(16, 12, 36);
+  }
+  </style>
+</head>
+<body>
+
+  <div class="sections-container">
+    <section class="section video-section">
+      <iframe
+        src="https://www.youtube.com/embed/hMk8SF5JOSQ?autoplay=1&mute=1&controls=0&showinfo=0&disablekb=1&fs=0&rel=0&iv_load_policy=3&modestbranding=1&loop=1&playlist=hMk8SF5JOSQ"
+        allow="autoplay; encrypted-media"
+        allowfullscreen>
+      </iframe>
+      <div class="scroll-indicator">MORE INFORMATION</div>
+
+      <div class="logoplacement">
+        <img src="airlogo.png" alt="Logo" class="logo">
+      </div>
+    </section>
+
+    <section class="section">
+        <div class="intro_text">Aim High ... Fly-Fight-Win</div>
+        <div class="main_text">Our mission : Fly, Fight and Win...<br/>
+        Founded in 1947, the goal of the United States Air Force is a branch of the United States Armed Forces.<br/>
+        With a total force of over 689,000 personel, we work to support all aspects of airpower, including air superiority; global strike; rapid global mobility; intelligence, surveillance and reconnaissance; and command and control.
+        </div>
+
+    </section>
+
+  <script>
+    const container = document.querySelector(".sections-container");
+    const sections = document.querySelectorAll(".section");
+    const iframe = document.querySelector(".map-iframe");
+    let currentSectionIndex = 0;
+    let isScrolling = false;
+  
+    function scrollToSection(index) {
+      if (index < 0 || index >= sections.length) return;
+      isScrolling = true; // Lock scrolling
+      container.scrollTo({
+        top: sections[index].offsetTop,
+        behavior: "smooth",
+      });
+      currentSectionIndex = index;
+  
+      // Enable iframe interaction only in the third section
+      if (currentSectionIndex === 2) {
+        iframe.style.pointerEvents = "auto"; // Allow interaction
+      } else {
+        iframe.style.pointerEvents = "none"; // Disable interaction
+      }
+  
+      setTimeout(() => {
+        isScrolling = false;
+      }, 800);
+    }
+  
+    container.addEventListener("wheel", (event) => {
+      if (isScrolling) return; // Prevent fast scrolling
+      event.preventDefault(); // Prevent default scroll behavior
+  
+      if (event.deltaY > 0 && currentSectionIndex < sections.length - 1) {
+        scrollToSection(currentSectionIndex + 1); // Scroll down by one
+      } else if (event.deltaY < 0 && currentSectionIndex > 0) {
+        scrollToSection(currentSectionIndex - 1); // Scroll up by one
+      }
+    });
+  
+    let touchStartY = 0;
+  
+    container.addEventListener("touchstart", (event) => {
+      touchStartY = event.touches[0].clientY; // Track touch start position
+    });
+  
+    container.addEventListener("touchend", (event) => {
+      if (isScrolling) return;
+      const deltaY = touchStartY - event.changedTouches[0].clientY;
+  
+      if (deltaY > 50 && currentSectionIndex < sections.length - 1) {
+        scrollToSection(currentSectionIndex + 1); // Swipe down
+      } else if (deltaY < -50 && currentSectionIndex > 0) {
+        scrollToSection(currentSectionIndex - 1); // Swipe up
+      }
+    });
+  
+    // Prevent iframe from blocking scroll interaction
+    iframe.addEventListener("mouseenter", () => {
+      iframe.style.pointerEvents = "auto";
+    });
+
+    iframe.addEventListener("mouseleave", () => {
+      iframe.style.pointerEvents = "none";
+    });
+  </script>
+
+</body>
+</html>
