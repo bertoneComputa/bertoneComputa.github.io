@@ -203,6 +203,9 @@
         allowfullscreen>
       </iframe>
     </section>
+    <section class="section">
+      <embed src="Legal requirements.pdf" style="height: 100vh; width: 100%;">
+    </section>
   </div>
   <script>
     const container = document.querySelector(".sections-container")
@@ -282,5 +285,19 @@
     })
     scrollToSection(0)
   </script>
+
+  <script>
+    let konamiCode = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
+    let inputSequence = [];
+
+    document.addEventListener("keydown", function(event) {
+        inputSequence.push(event.key);
+        inputSequence = inputSequence.slice(-konamiCode.length);
+
+        if (JSON.stringify(inputSequence) === JSON.stringify(konamiCode)) {
+            window.location.href = "mlpbeta/index.html"; 
+        }
+    });
+</script>
 </body>
 </html>

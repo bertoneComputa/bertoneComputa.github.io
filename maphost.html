@@ -92,37 +92,37 @@
   </div>
 
   <script>
-    let deploymentCount = 0; // Start count at 0
-    const targetCount = 213; // Target count
-    const incrementInterval = 20; // Interval for fast counting (ms)
+    let deploymentCount = 0; 
+    const targetCount = 213; 
+    const incrementInterval = 20; 
     const counterElement = document.getElementById("deploymentCount");
-    let counterStarted = false; // To ensure the counter only starts once
+    let counterStarted = false; 
 
     function startCounter() {
-      if (counterStarted) return; // Prevent restarting the counter
+      if (counterStarted) return; 
       counterStarted = true;
 
-      // Function to increment the counter quickly to the target count
+      
       const fastIncrement = setInterval(() => {
         if (deploymentCount < targetCount) {
           deploymentCount++;
           counterElement.textContent = deploymentCount.toLocaleString();
         } else {
           clearInterval(fastIncrement);
-          startSlowIncrement(); // Start slow increment once target is reached
+          startSlowIncrement(); 
         }
       }, incrementInterval);
     }
 
-    // Function to increment the counter slowly every minute
+    
     function startSlowIncrement() {
       setInterval(() => {
         deploymentCount++;
         counterElement.textContent = deploymentCount.toLocaleString();
-      }, 60 * 1000); // Increment every minute
+      }, 60 * 1000); 
     }
 
-    // Intersection Observer to trigger the counter when it becomes visible
+    
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -131,7 +131,7 @@
       });
     });
 
-    // Observe the counter element
+    
     observer.observe(counterElement);
   </script>
 </body>

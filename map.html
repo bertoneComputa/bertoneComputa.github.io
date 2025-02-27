@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>US Military Deployments Map</title>
-  <!-- Leaflet CSS -->
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
   <style>
@@ -54,31 +54,31 @@
     <h2>US Military Deployments</h2>
     <p>Explore key locations of US military bases and operations worldwide. Click on markers to learn about each location's strategic importance.</p>
   </div>
-  <!-- Map Container -->
+  
   <div id="map"></div>
 
-  <!-- Leaflet JS -->
+ 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Initialize the map without zoom controls
+  
     const map = L.map('map', {
       maxBounds: [
-        [-85, -180], // Southwest bounds
-        [85, 180]    // Northeast bounds
+        [-85, -180], 
+        [85, 180]    
       ],
       maxZoom: 19,
       minZoom: 2,
-      zoomControl: false // Disable zoom controls
+      zoomControl: false 
     }).setView([20, 0], 2);
 
-    // Add a dark-themed tile layer
+   
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
       attribution: 'Map data © OpenStreetMap contributors & CARTO',
       subdomains: 'abcd'
     }).addTo(map);
 
-    // Location data with comprehensive explanations
+   
     const locations = [
       { name: 'Ramstein Air Base', coordinates: [49.4447, 7.6026], description: 'Ramstein serves as the headquarters for NATO Air Command and provides logistical support to European and Middle Eastern operations.' },
       { name: 'Camp Lemonnier', coordinates: [11.5475, 43.1598], description: 'The only permanent US military base in Africa, used for counter-terrorism operations and monitoring the Horn of Africa region.' },
@@ -104,7 +104,6 @@
       { name: 'RAF Lakenheath', coordinates: [52.41, 0.561], description: 'A US Air Force base in the UK, hosting F-35 fighters and supporting European defense.' },
     ];
 
-    // Place markers for all locations
     locations.forEach(location => {
       const marker = L.marker(location.coordinates).addTo(map);
       marker.bindPopup(`

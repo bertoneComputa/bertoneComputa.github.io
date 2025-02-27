@@ -1,9 +1,6 @@
-/* OPTIONAL: Import modern font from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
 
-/* -------------------------------
-   BASIC RESETS & GLOBAL STYLES
---------------------------------- */
+
 * {
   margin: 0;
   padding: 0;
@@ -12,7 +9,6 @@
 
 body {
   font-family: "Helvetica Neue", Arial, sans-serif;
-  /* Make all text and numbers bold */
   font-weight: bold;
   
   color: #333;
@@ -22,9 +18,7 @@ body {
   background-position: left top;
 }
 
-/* -------------------------------
-   HERO BANNER
---------------------------------- */
+
 .hero-banner {
   position: relative;
   width: 100%;
@@ -34,7 +28,6 @@ body {
   justify-content: center;
   text-align: center;
   color: #fff;
-  /* Background removed so the global body background is visible */
 }
 
 .hero-content {
@@ -54,9 +47,6 @@ body {
   font-size: 1.3rem;
 }
 
-/* -------------------------------
-   TIMELINE CONTAINER & TITLE
---------------------------------- */
 .timeline-container {
   width: 90%;
   max-width: 1200px;
@@ -64,8 +54,6 @@ body {
   padding-bottom: 60px;
 }
 
-/* Changed the title color to white (#fff)
-   and used a modern font (Montserrat) */
 .timeline-title {
   font-family: 'Montserrat', sans-serif;
   font-size: 2rem;
@@ -82,9 +70,6 @@ body {
   margin-bottom: 40px;
 }
 
-/* -------------------------------
-   ZIGZAG TIMELINE ITEMS
---------------------------------- */
 .timeline-item {
   width: 100%;
   position: relative;
@@ -175,9 +160,6 @@ body {
   clear: both;
 }
 
-/* -------------------------------
-   SCROLL FADE-IN ANIMATION
---------------------------------- */
 .fade-in {
   opacity: 0;
   transform: translateY(30px);
@@ -189,9 +171,6 @@ body {
   transform: translateY(0);
 }
 
-/* -------------------------------
-   FOOTER STYLES
---------------------------------- */
 footer {
   text-align: center;
   font-size: 0.8rem;
@@ -200,7 +179,6 @@ footer {
   background-color: #f7f7f7;
 }
 
-/* MEDIA QUERIES - RESPONSIVENESS */
 @media (max-width: 768px) {
   .timeline-content {
     width: 100%;
