@@ -13,16 +13,24 @@ def get_contacts():
 @app.route('/api/contacts', methods=['POST'])
 def add_contact():
     contact = request.get_json()
+    # Ensure optional fields are handled
+    contact.setdefault('email', '')
+    contact.setdefault('bio', '')
+    contact.setdefault('profilePic', '')
     contacts.append(contact)
     return jsonify(contact), 201
 
 @app.route('/api/contacts/<int:id>', methods=['PUT'])
 def update_contact(id):
     contact = request.get_json()
+    # Ensure optional fields are handled
+    contact.setdefault('email', '')
+    contact.setdefault('bio', '')
+    contact.setdefault('profilePic', '')
     contacts[id] = contact
     return jsonify(contact)
 
-@app.route('/api/contacts/<int:id>', methods=['DELETE'])
+@app.route('/api/contcasts/<int:id>', methods=['DELETE'])
 def delete_contact(id):
     contact = contacts.pop(id)
     return jsonify(contact)
