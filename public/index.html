@@ -5,156 +5,479 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phonebook</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #74ebd5, #acb6e5);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .wrapper {
+      display: grid;
+      width: 100vw;
+      height: 100vh;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 2px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      background: #333;
+    }
+
+    .column {
+      display: grid;
+      grid-template-rows: repeat(auto-fill, minmax(1rem, 1fr));
+      gap: 2px;
+    }
+
+    .box {
+      width: 100%;
+      height: 100%;
+      transition: background-color 0.3s ease;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 20px;
-      margin: 0;
+      background: rgba(30, 42, 68, 0.6);
     }
+
     h1 {
-      color: #fff;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      color: #e6e9ff;
+      text-shadow: 0 0 8px rgba(102, 204, 255, 0.3);
       font-size: 2.5em;
       margin-bottom: 20px;
+      text-align: center;
     }
+
     form {
-      background: white;
-      padding: 25px;
+      background: #2a3b66;
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       width: 100%;
       max-width: 450px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
     }
+
     input, textarea {
       width: 100%;
       padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ddd;
+      margin: 8px 0;
+      border: 1px solid #4a5b88;
       border-radius: 6px;
       font-size: 1em;
+      background: #3c4b7a;
+      color: #e6e9ff;
+      box-sizing: border-box;
     }
+
+    input::placeholder, textarea::placeholder {
+      color: #a0a8cc;
+    }
+
     textarea {
       resize: vertical;
       min-height: 80px;
     }
+
     button {
       width: 100%;
       padding: 12px;
-      background: #28a745;
-      color: white;
+      background: #66ccff;
+      color: #1e2a44;
       border: none;
       border-radius: 6px;
       font-size: 1.1em;
+      font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: box-shadow 0.3s, transform 0.2s;
+      box-shadow: 0 0 10px rgba(102, 204, 255, 0.5), 0 0 20px rgba(102, 204, 255, 0.3);
+      animation: glow 1.5s ease-in-out infinite alternate;
     }
+
+    @keyframes glow {
+      from {
+        box-shadow: 0 0 10px rgba(102, 204, 255, 0.5), 0 0 20px rgba(102, 204, 255, 0.3);
+      }
+      to {
+        box-shadow: 0 0 20px rgba(102, 204, 255, 0.7), 0 0 30px rgba(102, 204, 255, 0.5);
+      }
+    }
+
     button:hover {
-      background: #218838;
+      transform: scale(1.02);
+      box-shadow: 0 0 25px rgba(102, 204, 255, 0.8), 0 0 35px rgba(102, 204, 255, 0.6);
     }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
     ul {
       list-style: none;
       padding: 0;
       width: 100%;
       max-width: 450px;
     }
+
     li {
-      background: white;
+      background: #2a3b66;
       padding: 15px;
       margin: 10px 0;
       border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow:
+
+ 0 2px 10px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
+      box-sizing: border-box;
     }
+
     .contact-img {
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       object-fit: cover;
-      background: #eee;
+      background: #4a5b88;
+      flex-shrink: 0;
     }
+
     .contact-img.placeholder {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5em;
-      color: #999;
+      font-size: 1.2em;
+      color: #a0a8cc;
     }
+
     .contact-info {
       flex: 1;
+      font-size: 0.95em;
+      color: #e6e9ff;
     }
+
     .contact-info strong {
-      font-size: 1.2em;
-      color: #333;
+      font-size: 1.1em;
+      color: #ffffff;
     }
+
     .contact-info p {
-      margin: 5px 0;
-      color: #666;
+      margin: 4px 0;
+      color: #a0a8cc;
     }
+
     .contact-actions {
       display: flex;
-      gap: 15px;
+      gap: 10px;
+      font-size: 0.9em;
+      align-items: center;
     }
+
+    .call-btn {
+      color: #66ccff;
+      cursor: pointer;
+      font-size: 1.2em;
+      padding: 5px;
+      transition: color 0.3s;
+    }
+
+    .call-btn:hover {
+      color: #99e6ff;
+    }
+
     .edit-btn {
-      color: #007bff;
+      color: #00ccff;
       cursor: pointer;
       font-weight: bold;
     }
+
     .delete-btn {
-      color: #dc3545;
+      color: #ff6666;
       cursor: pointer;
       font-weight: bold;
+    }
+
+    .speech-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #2a3b66;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      color: #e6e9ff;
+      text-align: center;
+      max-width: 90%;
+      width: 400px;
+    }
+
+    .speech-modal p {
+      margin: 0 0 10px;
+      font-size: 1.1em;
+    }
+
+    .speech-modal button {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .content {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      form {
+        padding: 15px;
+        max-width: 100%;
+      }
+
+      input, textarea {
+        font-size: 0.9em;
+        padding: 8px;
+      }
+
+      button {
+        font-size: 1em;
+        padding: 10px;
+        box-shadow: 0 0 8px rgba(102, 204, 255, 0.4), 0 0 15px rgba(102, 204, 255, 0.2);
+        animation: glow-mobile 1.5s ease-in-out infinite alternate;
+      }
+
+      @keyframes glow-mobile {
+        from {
+          box-shadow: 0 0 8px rgba(102, 204, 255, 0.4), 0 0 15px rgba(102, 204, 255, 0.2);
+        }
+        to {
+          box-shadow: 0 0 15px rgba(102, 204, 255, 0.6), 0 0 20px rgba(102, 204, 255, 0.4);
+        }
+      }
+
+      button:hover {
+        box-shadow: 0 0 20px rgba(102, 204, 255,abel
+ 0.7), 0 0 25px rgba(102, 204, 255, 0.5);
+      }
+
+      li {
+        flex-wrap: wrap;
+        padding: 10px;
+        gap: 8px;
+      }
+
+      .contact-img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .contact-img.placeholder {
+        font-size: 1em;
+      }
+
+      .contact-info {
+        font-size: 0.85em;
+      }
+
+      .contact-info strong {
+        font-size: 1em;
+      }
+
+      .contact-actions {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-end;
+      }
+
+      .call-btn {
+        font-size: 1em;
+        padding: 3px;
+      }
+
+      .speech-modal {
+        width: 90%;
+        padding: 15px;
+      }
+
+      .speech-modal p {
+        font-size: 1em;
+      }
+
+      .speech-modal button {
+        padding: 8px 16px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Phonebook</h1>
-  <form id="contact-form">
-    <input type="text" id="name" placeholder="Name" required>
-    <input type="tel" id="phone" placeholder="Phone" required>
-    <input type="email" id="email" placeholder="Email (optional)">
-    <textarea id="bio" placeholder="Bio (optional)"></textarea>
-    <input type="url" id="profilePic" placeholder="Profile Picture URL (optional)">
-    <button type="submit">Add Contact</button>
-  </form>
-  <ul id="contact-list"></ul>
+  <div class="wrapper" id="wrapper"></div>
+  <div class="content">
+    <h1>Phonebook™</h1>
+    <form id="contact-form">
+      <input type="text" id="name" placeholder="Name" required>
+      <input type="tel" id="phone" placeholder="Phone" required>
+      <input type="email" id="email" placeholder="Email (optional)">
+      <textarea id="bio" placeholder="Bio (optional)"></textarea>
+      <input type="url" id="profilePic" placeholder="Profile Picture URL (optional)">
+      <button type="submit">Add Contact</button>
+    </form>
+    <ul id="contact-list"></ul>
+  </div>
 
   <script>
-    const apiUrl = '/api';
+    // Animated Grid Background
+    const colorSchemes = {
+      blue: ['#004080', '#0066B3', '#0080E6', '#0099FF', '#1AB2FF', '#4DCCFF'],
+      green: ['#006633', '#008040', '#00994D', '#00B359', '#00CC66', '#33E67A'],
+      purple: ['#4D0066', '#660080', '#7A0099', '#8F00B3', '#A600CC', '#BF00E6'],
+      red: ['#660000', '#990000', '#CC0000', '#FF0000', '#FF3333', '#FF6666'],
+      teal: ['#006666', '#008080', '#009999', '#00B3B3', '#00CCCC', '#33E6E6'],
+      orange: ['#662200', '#993300', '#CC4400', '#FF5500', '#FF7733', '#FF9955'],
+      pink: ['#4D004D', '#660066', '#800080', '#990099', '#B300B3', '#CC00CC'],
+      yellow: ['#664D00', '#997300', '#CC9900', '#FFBF00', '#FFD633', '#FFEB66']
+    };
+
+    const columns = Object.keys(colorSchemes);
+
+    function createColumns() {
+      const wrapper = document.getElementById('wrapper');
+      wrapper.innerHTML = '';
+      
+      columns.forEach((columnColor, index) => {
+        const column = document.createElement('div');
+        column.className = 'column';
+        column.dataset.colorScheme = columnColor;
+        
+        const boxCount = Math.ceil(window.innerHeight / 16);
+        for (let i = 0; i < boxCount; i++) {
+          const box = document.createElement('div');
+          box.className = 'box';
+          column.appendChild(box);
+        }
+        
+        wrapper.appendChild(column);
+      });
+    }
+
+    function animateColumn(column, direction = 1) {
+      const boxes = Array.from(column.querySelectorAll('.box'));
+      const colorScheme = colorSchemes[column.dataset.colorScheme];
+      
+      const currentColors = boxes.map(box => {
+        const color = box.style.backgroundColor;
+        return colorScheme.indexOf(rgbToHex(color)) !== -1 ? 
+          rgbToHex(color) : 
+          colorScheme[0];
+      });
+
+      if (direction > 0) {
+        const lastColor = currentColors.pop();
+        currentColors.unshift(lastColor);
+      } else {
+        const firstColor = currentColors.shift();
+        currentColors.push(firstColor);
+      }
+
+      boxes.forEach((box, i) => {
+        box.style.backgroundColor = currentColors[i] || colorScheme[0];
+      });
+    }
+
+    function initializeColumns() {
+      const columns = document.querySelectorAll('.column');
+      columns.forEach(column => {
+        const boxes = column.querySelectorAll('.box');
+        const colorScheme = colorSchemes[column.dataset.colorScheme];
+        
+        boxes.forEach((box, index) => {
+          const colorIndex = index % colorScheme.length;
+          box.style.backgroundColor = colorScheme[colorIndex];
+        });
+      });
+    }
+
+    function rgbToHex(rgb) {
+      if (!rgb) return '#000000';
+      if (rgb.startsWith('#')) return rgb;
+      
+      const rgbMatch = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+      if (!rgbMatch) return '#000000';
+      
+      const r = parseInt(rgbMatch[1]);
+      const g = parseInt(rgbMatch[2]);
+      const b = parseInt(rgbMatch[3]);
+      
+      return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    }
+
+    createColumns();
+    initializeColumns();
+
+    document.querySelectorAll('.column').forEach((column, index) => {
+      setInterval(() => {
+        const direction = index % 2 === 0 ? 1 : -1;
+        animateColumn(column, direction);
+      }, 200);
+    });
+
+    window.addEventListener('resize', () => {
+      createColumns();
+      initializeColumns();
+    });
+
+    // Phonebook Functionality
+    const apiUrl = 'http://localhost:5000/api';
     const form = document.getElementById('contact-form');
     const contactList = document.getElementById('contact-list');
     let editId = null;
 
     async function fetchContacts() {
-      const response = await fetch(`${apiUrl}/contacts`);
-      const contacts = await response.json();
-      contactList.innerHTML = '';
-      contacts.forEach((contact, index) => {
-        const li = document.createElement('li');
-        const img = contact.profilePic
-          ? `<img src="${contact.profilePic}" class="contact-img" alt="${contact.name}'s picture">`
-          : `<div class="contact-img placeholder">👤</div>`;
-        li.innerHTML = `
-          ${img}
-          <div class="contact-info">
-            <strong>${contact.name}</strong>
-            <p>${contact.phone}</p>
-            ${contact.email ? `<p>${contact.email}</p>` : ''}
-            ${contact.bio ? `<p>${contact.bio}</p>` : ''}
-          </div>
-          <div class="contact-actions">
-            <span class="edit-btn" onclick="editContact(${index})">Edit</span>
-            <span class="delete-btn" onclick="deleteContact(${index})">Delete</span>
-          </div>
-        `;
-        contactList.appendChild(li);
-      });
+      try {
+        const response = await fetch(`${apiUrl}/contacts`);
+        const contacts = await response.json();
+        contactList.innerHTML = '';
+        contacts.forEach((contact, index) => {
+          const li = document.createElement('li');
+          const img = contact.profilePic
+            ? `<img src="${contact.profilePic}" class="contact-img" alt="${contact.name}'s picture">`
+            : `<div class="contact-img placeholder">👤</div>`;
+          li.innerHTML = `
+            ${img}
+            <div class="contact-info">
+              <strong>${contact.name}</strong>
+              <p>${contact.phone}</p>
+              ${contact.email ? `<p>${contact.email}</p>` : ''}
+              ${contact.bio ? `<p>${contact.bio}</p>` : ''}
+            </div>
+            <div class="contact-actions">
+              <span class="call-btn" onclick="callContact(${index})" title="Call with AI">📞</span>
+              <span class="edit-btn" onclick="editContact(${index})">Edit</span>
+              <span class="delete-btn" onclick="deleteContact(${index})">Delete</span>
+            </div>
+          `;
+          contactList.appendChild(li);
+        });
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
     }
 
     form.addEventListener('submit', async (e) => {
@@ -166,45 +489,168 @@
         bio: document.getElementById('bio').value,
         profilePic: document.getElementById('profilePic').value
       };
-      if (editId !== null) {
-        await fetch(`${apiUrl}/contacts/${editId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(contact)
-        });
-        editId = null;
-        form.querySelector('button').textContent = 'Add Contact';
-      } else {
-        await fetch(`${apiUrl}/contacts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(contact)
-        });
+      try {
+        if (editId != null) {
+          await fetch(`${apiUrl}/contacts/${editId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(contact)
+          });
+          editId = null;
+          form.querySelector('button').textContent = 'Add Contact';
+        } else {
+          await fetch(`${apiUrl}/contacts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(contact)
+          });
+        }
+        form.reset();
+        fetchContacts();
+      } catch (error) {
+        console.error('Error saving contact:', error);
       }
-      form.reset();
-      fetchContacts();
     });
 
-    window.editContact = (id) => {
-      fetch(`${apiUrl}/contacts`)
-        .then(res => res.json())
-        .then(contacts => {
-          const contact = contacts[id];
-          document.getElementById('name').value = contact.name;
-          document.getElementById('phone').value = contact.phone;
-          document.getElementById('email').value = contact.email || '';
-          document.getElementById('bio').value = contact.bio || '';
-          document.getElementById('profilePic').value = contact.profilePic || '';
-          editId = id;
-          form.querySelector('button').textContent = 'Update Contact';
-        });
+    window.editContact = async (id) => {
+      try {
+        const res = await fetch(`${apiUrl}/contacts`);
+        const contacts = await res.json();
+        const contact = contacts[id];
+        document.getElementById('name').value = contact.name;
+        document.getElementById('phone').value = contact.phone;
+        document.getElementById('email').value = contact.email || '';
+        document.getElementById('bio').value = contact.bio || '';
+        document.getElementById('profilePic').value = contact.profilePic || '';
+        editId = id;
+        form.querySelector('button').textContent = 'Update Contact';
+      } catch (error) {
+        console.error('Error editing contact:', error);
+      }
     };
 
     window.deleteContact = async (id) => {
-      await fetch(`${apiUrl}/contacts/${id}`, {
-        method: 'DELETE'
-      });
-      fetchContacts();
+      try {
+        await fetch(`${apiUrl}/contacts/${id}`, {
+          method: 'DELETE'
+        });
+        fetchContacts();
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+      }
+    };
+
+    // Speech Interaction
+    function showSpeechModal(message, showStopButton = false, onStop = null) {
+      const modal = document.createElement('div');
+      modal.className = 'speech-modal';
+      modal.innerHTML = `
+        <p>${message}</p>
+        ${showStopButton ? '<button onclick="stopSpeechInteraction()">Stop</button>' : ''}
+      `;
+      document.body.appendChild(modal);
+      return modal;
+    }
+
+    function removeSpeechModal(modal) {
+      if (modal) document.body.removeChild(modal);
+    }
+
+    async function getAIResponse(input) {
+      try {
+        const response = await fetch(`${apiUrl}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input })
+        });
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        return data.response;
+      } catch (error) {
+        console.error('Error fetching AI response:', error);
+        return 'Sorry, I couldn’t process your request. Please try again.';
+      }
+    }
+
+    let recognition = null;
+    let speechModal = null;
+
+    function stopSpeechInteraction() {
+      if (recognition) {
+        recognition.stop();
+        recognition = null;
+      }
+      if (speechModal) {
+        removeSpeechModal(speechModal);
+        speechModal = null;
+      }
+    }
+
+    window.callContact = async (id) => {
+      try {
+        // Check Web Speech API support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert('Sorry, your browser does not support speech recognition. Try Chrome or Edge.');
+          return;
+        }
+
+        // Initialize speech recognition
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        // Show listening modal
+        speechModal = showSpeechModal('Listening... Speak now.', true);
+
+        recognition.start();
+
+        recognition.onresult = async (event) => {
+          const transcript = event.results[0][0].transcript;
+          removeSpeechModal(speechModal);
+          speechModal = showSpeechModal(`You said: "${transcript}"`, false);
+
+          // Get AI response from backend
+          const aiResponse = await getAIResponse(transcript);
+
+          // Speak AI response
+          const utterance = new SpeechSynthesisUtterance(aiResponse);
+          utterance.lang = 'en-US';
+          utterance.onstart = () => {
+            removeSpeechModal(speechModal);
+            speechModal = showSpeechModal('Speaking...');
+          };
+          utterance.onend = () => {
+            removeSpeechModal(speechModal);
+            speechModal = null;
+          };
+          window.speechSynthesis.speak(utterance);
+
+          recognition = null;
+        };
+
+        recognition.onerror = (event) => {
+          removeSpeechModal(speechModal);
+          speechModal = showSpeechModal(`Error: ${event.error}. Click to close.`, false);
+          speechModal.onclick = () => removeSpeechModal(speechModal);
+          recognition = null;
+        };
+
+        recognition.onend = () => {
+          if (recognition) {
+            recognition.stop();
+            recognition = null;
+          }
+        };
+      } catch (error) {
+        console.error('Error in speech interaction:', error);
+        removeSpeechModal(speechModal);
+        speechModal = showSpeechModal('Error occurred. Click to close.', false);
+        speechModal.onclick = () => removeSpeechModal(speechModal);
+      }
     };
 
     fetchContacts();
