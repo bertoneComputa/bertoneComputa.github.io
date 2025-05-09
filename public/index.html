@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phonebook</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+      max-width: 400px;
+    }
+    li {
+      background: white;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .edit-btn {
+      color: blue;
+      cursor: pointer;
+    }
+    .delete-btn {
+      color: red;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Phonebook</h1>
+  <form id="contact-form">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="tel" id="phone" placeholder="Phone" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <button type="submit">Add Contact</button>
+  </form>
+  <ul id="contact-list"></ul>
+
+  <script>
+    const apiUrl = '/api'; // Will be proxied by Vercel
+    const form = document.getElementById('contact-form');
+    const contactList = document.getElementById('contact-list');
+    let editId = null;
+
+    // Fetch and display contacts
+    async function fetchContacts() {
+      const response = await fetch(`${apiUrl}/contacts`);
+      const contacts = await response.json();
+      contactList.innerHTML = '';
+      contacts.forEach((contact, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div>
+            <strong>${contact.name}</strong><br>
+            ${contact.phone}<br>
+            ${contact.email}
+          </div>
+          <div>
+            <span class="edit-btn" onclick="editContact(${index})">Edit</span>
+            <span class="delete-btn" onclick="deleteContact(${index})">Delete</span>
+          </div>
+        `;
+        contactList.appendChild(li);
+      });
+    }
+
+    // Add or update contact
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const contact = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value
+      };
+      if (editId !== null) {
+        await fetch(`${apiUrl}/contacts/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(contact)
+        });
+        editId = null;
+        form.querySelector('button').textContent = 'Add Contact';
+      } else {
+        await fetch(`${apiUrl}/contacts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(contact)
+        });
+      }
+      form.reset();
+      fetchContacts();
+    });
+
+    // Edit contact
+    window.editContact = (id) => {
+      fetch(`${apiUrl}/contacts`)
+        .then(res => res.json())
+        .then(contacts => {
+          const contact = contacts[id];
+          document.getElementById('name').value = contact.name;
+          document.getElementById('phone').value = contact.phone;
+          document.getElementById('email').value = contact.email;
+          editId = id;
+          form.querySelector('button').textContent = 'Update Contact';
+        });
+    };
+
+    // Delete contact
+    window.deleteContact = async (id) => {
+      await fetch(`${apiUrl}/contacts/${id}`, {
+        method: 'DELETE'
+      });
+      fetchContacts();
+    };
+
+    // Initial fetch
+    fetchContacts();
+  </script>
+</body>
+</html>
