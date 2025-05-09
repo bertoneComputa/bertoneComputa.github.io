@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from transformers import pipeline
 import logging
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -12,14 +11,19 @@ logger = logging.getLogger(__name__)
 
 contacts = []
 
-# Initialize Hugging Face conversational model
-try:
-    logger.info("Loading Hugging Face model...")
-    chat_model = pipeline('text-generation', model='facebook/blenderbot-400M-distill')
-    logger.info("Model loaded successfully")
-except Exception as e:
-    logger.error(f"Failed to load model: {str(e)}")
-    raise
+# Initialize Hugging Face conversational model (optional)
+USE_AI_MODEL = True  # Set to False to disable AI model for testing
+chat_model = None
+if USE_AI_MODEL:
+    try:
+        from transformers import pipeline
+        logger.info("Loading Hugging Face model...")
+        chat_model = pipeline('text-generation', model='microsoft/DialoGPT-small')  # Lighter model
+        logger.info("Model loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load model: {str(e)}")
+        # Continue without AI model
+        chat_model = None
 
 @app.route('/api/contacts', methods=['GET'])
 def get_contacts():
@@ -72,6 +76,9 @@ def delete_contact(id):
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
+    if not chat_model:
+        logger.warning("AI model not available")
+        return jsonify({'error': 'AI model not available'}), 503
     try:
         data = request.get_json()
         input_text = data.get('input', '')
@@ -79,7 +86,7 @@ def chat():
         if not input_text:
             logger.warning("No input provided for chat")
             return jsonify({'error': 'No input provided'}), 400
-        response = chat_model(input_text, max_length=50, num_return_sequences=1)[0]['generated_text']
+        response = chat_model(input_text, max_length=30, num_return_sequences=1)[0]['generated_text']
         logger.info(f"Chat response: {response}")
         return jsonify({'response': response})
     except Exception as e:
