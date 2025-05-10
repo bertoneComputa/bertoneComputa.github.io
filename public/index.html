@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phonebook</title>
+  <!-- Preload YouTube Iframe API for faster loading -->
+  <link rel="preload" href="https://www.youtube.com/iframe_api" as="script">
   <style>
     * {
       margin: 0;
@@ -48,10 +50,42 @@
       z-index: 2;
     }
 
+    /* Loading Placeholder */
+    .video-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      color: #e6e9ff;
+      font-size: 1.5em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .video-loading.hidden {
+      display: none;
+    }
+
+    .spinner {
+      border: 4px solid #a0a8cc;
+      border-top: 4px solid #66ccff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     /* Content Overlay */
     .content {
       position: relative;
-      z-index: 3;
+      z-index: 4;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -133,7 +167,7 @@
       font-size: 1.1em;
       font-weight: bold;
       cursor: pointer;
-      transition: box-shadow 0.3s, transform 0.2s;
+      transition: box-shadow 0.3s, transform: 0.2s;
       box-shadow: 0 0 10px rgba(102, 204, 255, 0.5), 0 0 20px rgba(102, 204, 255, 0.3);
       animation: glow 1.5s ease-in-out infinite alternate;
     }
@@ -329,6 +363,10 @@
   <!-- Background Video -->
   <div class="video-background">
     <div id="player"></div>
+    <div class="video-loading" id="video-loading">
+      <div class="spinner"></div>
+      <span>Loading video...</span>
+    </div>
   </div>
 
   <!-- Content -->
@@ -370,7 +408,8 @@
           rel: 0, // Disable related videos
           iv_load_policy: 3, // Disable annotations
           fs: 0, // Disable fullscreen button
-          start: 50 // Start at 50 seconds
+          start: 50, // Start at 50 seconds
+          vq: 'medium' // Lower quality for faster loading
         },
         events: {
           onReady: (event) => {
@@ -378,6 +417,9 @@
             event.target.playVideo();
           },
           onStateChange: (event) => {
+            if (event.data === YT.PlayerState.PLAYING) {
+              document.getElementById('video-loading').classList.add('hidden');
+            }
             if (event.data === YT.PlayerState.ENDED) {
               player.playVideoAt(50); // Restart at 50 seconds
             }
@@ -387,7 +429,7 @@
     }
 
     // Phonebook Functionality
-    const apiUrl = '/api'; // Adjust if backend is hosted elsewhere
+    const apiUrl = '/api'; // Use 'http://localhost:5000/api' for local testing
     const form = document.getElementById('contact-form');
     const contactList = document.getElementById('contact-list');
     const formError = document.getElementById('form-error');
@@ -471,7 +513,7 @@
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
         }
-        await response.json(); // Ensure response is consumed
+        await response.json(); // Consume response
         form.reset();
         fetchContacts();
       } catch (error) {
