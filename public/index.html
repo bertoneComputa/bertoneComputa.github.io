@@ -308,9 +308,21 @@
         left: 50%;
       }
 
+      .content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
       .phonebook-container {
         max-height: 90vh;
+        max-width: 90vw;
         padding: 15px;
+        overflow-y: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
       h1 {
@@ -448,6 +460,7 @@
             event.target.mute();
             event.target.playVideo();
             adjustVideoSize();
+            centerPhonebook();
           },
           onStateChange: (event) => {
             if (event.data === YT.PlayerState.PLAYING) {
@@ -486,8 +499,26 @@
       }
     }
 
-    window.addEventListener('resize', adjustVideoSize);
-    window.addEventListener('orientationchange', adjustVideoSize);
+    function centerPhonebook() {
+      const contentElement = document.querySelector('.content');
+      const phonebookContainer = document.querySelector('.phonebook-container');
+      if (contentElement && phonebookContainer) {
+        contentElement.style.display = 'flex';
+        contentElement.style.justifyContent = 'center';
+        contentElement.style.alignItems = 'center';
+        phonebookContainer.style.maxHeight = window.innerWidth <= 600 ? '90vh' : '80vh';
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      adjustVideoSize();
+      centerPhonebook();
+    });
+    window.addEventListener('orientationchange', () => {
+      adjustVideoSize();
+      centerPhonebook();
+    });
+    window.addEventListener('load', centerPhonebook);
 
     const apiUrl = window.location.hostname.includes('localhost') ? 'http://localhost:5000/api' : '/api';
     const form = document.getElementById('contact-form');
