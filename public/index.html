@@ -299,11 +299,13 @@
       }
 
       #player {
-        width: 100vw;
-        height: 100vh;
-        min-width: 100vw;
-        min-height: 100vh;
-        transform: none;
+        width: 100vh;
+        height: 100vw;
+        min-width: 100vh;
+        min-height: 100vw;
+        transform: translate(-50%, -50%) rotate(90deg) scale(1.5);
+        top: 50%;
+        left: 50%;
       }
 
       .phonebook-container {
@@ -466,20 +468,26 @@
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const scale = Math.max(vw / vh, vh / vw) * 1.2;
+      const isMobile = vw <= 600;
 
-      playerElement.style.width = `${vw * scale}px`;
-      playerElement.style.height = `${vh * scale}px`;
-      playerElement.style.minWidth = `${vw * scale}px`;
-      playerElement.style.minHeight = `${vh * scale}px`;
-      playerElement.style.left = '50%';
-      playerElement.style.top = '50%';
-      playerElement.style.transform = `translate(-50%, -50%)`;
+      if (isMobile) {
+        const scale = Math.max(vh / vw, vw / vh) * 1.5;
+        playerElement.style.width = `${vh}px`;
+        playerElement.style.height = `${vw}px`;
+        playerElement.style.minWidth = `${vh}px`;
+        playerElement.style.minHeight = `${vw}px`;
+        playerElement.style.transform = `translate(-50%, -50%) rotate(90deg) scale(${scale})`;
+      } else {
+        playerElement.style.width = `${vw}px`;
+        playerElement.style.height = `${vh}px`;
+        playerElement.style.minWidth = `${vw}px`;
+        playerElement.style.minHeight = `${vh}px`;
+        playerElement.style.transform = 'none';
+      }
     }
 
     window.addEventListener('resize', adjustVideoSize);
     window.addEventListener('orientationchange', adjustVideoSize);
-    setTimeout(adjustVideoSize, 1000);
 
     const apiUrl = window.location.hostname.includes('localhost') ? 'http://localhost:5000/api' : '/api';
     const form = document.getElementById('contact-form');
