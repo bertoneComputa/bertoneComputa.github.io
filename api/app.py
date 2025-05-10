@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
+import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -10,20 +11,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 contacts = []
-
-# Initialize Hugging Face conversational model (optional)
-USE_AI_MODEL = True  # Set to False to disable AI model for testing
-chat_model = None
-if USE_AI_MODEL:
-    try:
-        from transformers import pipeline
-        logger.info("Loading Hugging Face model...")
-        chat_model = pipeline('text-generation', model='microsoft/DialoGPT-small')  # Lighter model
-        logger.info("Model loaded successfully")
-    except Exception as e:
-        logger.error(f"Failed to load model: {str(e)}")
-        # Continue without AI model
-        chat_model = None
 
 @app.route('/api/contacts', methods=['GET'])
 def get_contacts():
@@ -76,9 +63,6 @@ def delete_contact(id):
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    if not chat_model:
-        logger.warning("AI model not available")
-        return jsonify({'error': 'AI model not available'}), 503
     try:
         data = request.get_json()
         input_text = data.get('input', '')
@@ -86,9 +70,19 @@ def chat():
         if not input_text:
             logger.warning("No input provided for chat")
             return jsonify({'error': 'No input provided'}), 400
-        response = chat_model(input_text, max_length=30, num_return_sequences=1)[0]['generated_text']
-        logger.info(f"Chat response: {response}")
-        return jsonify({'response': response})
+        
+        # Proxy request to JSONPlaceholder
+        response = requests.get('https://jsonplaceholder.typicode.com/users/1')
+        if response.status_code != 200:
+            logger.error(f"JSONPlaceholder API error: {response.status_code}")
+            return jsonify({'error': 'Failed to fetch data from API'}), 500
+        
+        user_data = response.json()
+        logger.info(f"JSONPlaceholder response: {user_data}")
+        return jsonify({
+            'name': user_data.get('name', 'Unknown'),
+            'phone': user_data.get('phone', 'No phone')
+        })
     except Exception as e:
         logger.error(f"Error in chat: {str(e)}")
         return jsonify({'error': str(e)}), 500

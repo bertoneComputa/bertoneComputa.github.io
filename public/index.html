@@ -454,7 +454,7 @@
     });
 
     // Phonebook Functionality
-    const apiUrl = 'http://localhost:5000/api';
+    const apiUrl = '/api';
     const form = document.getElementById('contact-form');
     const contactList = document.getElementById('contact-list');
     const formError = document.getElementById('form-error');
@@ -482,7 +482,7 @@
               ${contact.bio ? `<p>${contact.bio}</p>` : ''}
             </div>
             <div class="contact-actions">
-              <span class="call-btn" onclick="callContact(${index})" title="Call with AI">📞</span>
+              <span class="call-btn" onclick="callContact(${index})" title="Simulate Call">📞</span>
               <span class="edit-btn" onclick="editContact(${index})">Edit</span>
               <span class="delete-btn" onclick="deleteContact(${index})">Delete</span>
             </div>
@@ -491,7 +491,8 @@
         });
       } catch (error) {
         console.error('Error fetching contacts:', error);
-        alert('Failed to load contacts. Please check if the backend server is running.');
+        formError.textContent = 'Failed to load contacts. Please check if the backend server is running.';
+        formError.style.display = 'block';
       }
     }
 
@@ -506,44 +507,41 @@
         profilePic: document.getElementById('profilePic').value
       };
       try {
-        if (editId != null) {
-          const response = await fetch(`${apiUrl}/contacts/${editId}`, {
+        let response;
+        if (editId !== null) {
+          response = await fetch(`${apiUrl}/contacts/${editId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(contact)
           });
-          if (!response.ok) {
-            throw new Error(`HTTP error ${response.status}`);
-          }
-          editId = null;
           form.querySelector('button').textContent = 'Add Contact';
+          editId = null;
         } else {
-          const response = await fetch(`${apiUrl}/contacts`, {
+          response = await fetch(`${apiUrl}/contacts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(contact)
           });
-          if (!response.ok) {
-            throw new Error(`HTTP error ${response.status}`);
-          }
+        }
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
         }
         form.reset();
-        formError.style.display = 'none';
         fetchContacts();
       } catch (error) {
         console.error('Error saving contact:', error);
-        formError.textContent = 'Failed to save contact. Please check if the backend server is running.';
+        formError.textContent = 'Failed to save contact. Please try again.';
         formError.style.display = 'block';
       }
     });
 
     window.editContact = async (id) => {
       try {
-        const res = await fetch(`${apiUrl}/contacts`);
-        if (!res.ok) {
-          throw new Error(`HTTP error ${res.status}`);
+        const response = await fetch(`${apiUrl}/contacts`);
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
         }
-        const contacts = await res.json();
+        const contacts = await response.json();
         const contact = contacts[id];
         document.getElementById('name').value = contact.name;
         document.getElementById('phone').value = contact.phone;
@@ -555,7 +553,8 @@
         formError.style.display = 'none';
       } catch (error) {
         console.error('Error editing contact:', error);
-        alert('Failed to load contact. Please check if the backend server is running.');
+        formError.textContent = 'Failed to load contact. Please try again.';
+        formError.style.display = 'block';
       }
     };
 
@@ -570,120 +569,52 @@
         fetchContacts();
       } catch (error) {
         console.error('Error deleting contact:', error);
-        alert('Failed to delete contact. Please check if the backend server is running.');
+        formError.textContent = 'Failed to delete contact. Please try again.';
+        formError.style.display = 'block';
       }
     };
 
-    // Speech Interaction
-    function showSpeechModal(message, showStopButton = false, onStop = null) {
+    // Modal for API Response
+    function showResponseModal(message, onClose = null) {
       const modal = document.createElement('div');
       modal.className = 'speech-modal';
       modal.innerHTML = `
         <p>${message}</p>
-        ${showStopButton ? '<button onclick="stopSpeechInteraction()">Stop</button>' : ''}
+        <button onclick="this.parentElement.remove()">Close</button>
       `;
       document.body.appendChild(modal);
+      if (onClose) {
+        modal.querySelector('button').addEventListener('click', onClose);
+      }
       return modal;
-    }
-
-    function removeSpeechModal(modal) {
-      if (modal) document.body.removeChild(modal);
-    }
-
-    async function getAIResponse(input) {
-      try {
-        const response = await fetch(`${apiUrl}/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input })
-        });
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        return data.response;
-      } catch (error) {
-        console.error('Error fetching AI response:', error);
-        return 'Sorry, I couldn’t process your request. Please check if the backend server is running.';
-      }
-    }
-
-    let recognition = null;
-    let speechModal = null;
-
-    function stopSpeechInteraction() {
-      if (recognition) {
-        recognition.stop();
-        recognition = null;
-      }
-      if (speechModal) {
-        removeSpeechModal(speechModal);
-        speechModal = null;
-      }
     }
 
     window.callContact = async (id) => {
       try {
-        // Check Web Speech API support
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-          alert('Sorry, your browser does not support speech recognition. Try Chrome or Edge.');
-          return;
+        const response = await fetch(`${apiUrl}/contacts`);
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
         }
-
-        // Initialize speech recognition
-        recognition = new SpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        // Show listening modal
-        speechModal = showSpeechModal('Listening... Speak now.', true);
-
-        recognition.start();
-
-        recognition.onresult = async (event) => {
-          const transcript = event.results[0][0].transcript;
-          removeSpeechModal(speechModal);
-          speechModal = showSpeechModal(`You said: "${transcript}"`, false);
-
-          // Get AI response from backend
-          const aiResponse = await getAIResponse(transcript);
-
-          // Speak AI response
-          const utterance = new SpeechSynthesisUtterance(aiResponse);
-          utterance.lang = 'en-US';
-          utterance.onstart = () => {
-            removeSpeechModal(speechModal);
-            speechModal = showSpeechModal('Speaking...');
-          };
-          utterance.onend = () => {
-            removeSpeechModal(speechModal);
-            speechModal = null;
-          };
-          window.speechSynthesis.speak(utterance);
-
-          recognition = null;
-        };
-
-        recognition.onerror = (event) => {
-          removeSpeechModal(speechModal);
-          speechModal = showSpeechModal(`Error: ${event.error}. Click to close.`, false);
-          speechModal.onclick = () => removeSpeechModal(speechModal);
-          recognition = null;
-        };
-
-        recognition.onend = () => {
-          if (recognition) {
-            recognition.stop();
-            recognition = null;
-          }
-        };
+        const contacts = await response.json();
+        const contact = contacts[id];
+        
+        // Simulate a call by fetching data from the backend, which proxies to JSONPlaceholder
+        const apiResponse = await fetch(`${apiUrl}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: contact.name })
+        });
+        const data = await apiResponse.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Display the response in a modal
+        const message = `Simulated call to ${contact.name}. API Response: Name: ${data.name}, Phone: ${data.phone}`;
+        showResponseModal(message);
       } catch (error) {
-        console.error('Error in speech interaction:', error);
-        removeSpeechModal(speechModal);
-        speechModal = showSpeechModal('Error occurred. Click to close.', false);
-        speechModal.onclick = () => removeSpeechModal(speechModal);
+        console.error('Error in call simulation:', error);
+        showResponseModal(`Error: ${error.message}`);
       }
     };
 
