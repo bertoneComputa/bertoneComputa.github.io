@@ -6,22 +6,52 @@
   <title>Phonebook</title>
   <link rel="preload" href="https://www.youtube.com/iframe_api" as="script">
   <style>
-    /* Existing styles remain unchanged, except for video brightness */
-    .video-background::after {
-      background: rgba(0, 0, 0, 0); /* Remove dimming overlay */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
     }
 
     #player {
-      width: 100%;
-      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       object-fit: cover;
       pointer-events: none;
       min-width: 100vw;
       min-height: 100vh;
-      filter: brightness(1); /* Ensure full brightness */
     }
 
-    /* Hide YouTube watermark and other UI elements */
+    .video-background::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0);
+      z-index: 2;
+    }
+
     .ytp-watermark,
     .ytp-pause-overlay,
     .ytp-large-play-button,
@@ -35,15 +65,325 @@
       opacity: 0 !important;
     }
 
-    /* Ensure video container hides overflow */
-    .video-background {
-      position: fixed;
-      top: 0;
-      left: 0;
+    .video-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      color: #e6e9ff;
+      font-size: 1.5em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .video-loading.hidden {
+      display: none;
+    }
+
+    .spinner {
+      border: 4px solid #a0a8cc;
+      border-top: 4px solid #66ccff;
+      border-radius: 50%;
+      width: 24 Crest;
+      height: 24px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .content {
+      position: relative;
+      z-index: 4;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(30, 42, 68, 0.6);
+    }
+
+    h1 {
+      color: #e6e9ff;
+      text-shadow: 0 0 8px rgba(102, 204, 255, 0.3);
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .search-container {
       width: 100%;
-      height: 100%;
-      z-index: 1;
-      overflow: hidden;
+      max-width: 450px;
+      margin-bottom: 20px;
+    }
+
+    .search-container input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #4a5b88;
+      border-radius: 6px;
+      font-size: 1em;
+      background: #3c4b7a;
+      color: #e6e9ff;
+      box-sizing: border-box;
+    }
+
+    .search-container input::placeholder {
+      color: #a0a8cc;
+    }
+
+    form {
+      background: #2a3b66;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 450px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #4a5b88;
+      border-radius: 6px;
+      font-size: 1em;
+      background: #3c4b7a;
+      color: #e6e9ff;
+      box-sizing: border-box;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #a0a8cc;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #66ccff;
+      color: #1e2a44;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: box-shadow 0.3s, transform: 0.2s;
+      box-shadow: 0 0 10px rgba(102, 204, 255, 0.5), 0 0 20px rgba(102, 204, 255, 0.3);
+      animation: glow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        box-shadow: 0 0 10px rgba(102, 204, 255, 0.5), 0 0 20px rgba(102, 204, 255, 0.3);
+      }
+      to {
+        box-shadow: 0 0 20px rgba(102, 204, 255, 0.7), 0 0 30px rgba(102, 204, 255, 0.5);
+      }
+    }
+
+    button:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 25px rgba(102, 204, 255, 0.8), 0 0 35px rgba(102, 204, 255, 0.6);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+      max-width: 450px;
+    }
+
+    li {
+      background: #2a3b66;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-sizing: border-box;
+    }
+
+    .contact-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #4a5b88;
+      flex-shrink: 0;
+    }
+
+    .contact-img.placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      color: #a0a8cc;
+    }
+
+    .contact-info {
+      flex: 1;
+      font-size: 0.95em;
+      color: #e6e9ff;
+    }
+
+    .contact
+
+    .contact-info strong {
+      font-size: 1.1em;
+      color: #ffffff;
+    }
+
+    .contact-info p {
+      margin: 4px 0;
+      color: #a0a8cc;
+    }
+
+    .contact-actions {
+      display: flex;
+      gap: 10px;
+      font-size: 0.9em;
+      align-items: center;
+    }
+
+    .edit-btn {
+      color: #00ccff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .delete-btn {
+      color: #ff6666;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .no-contacts {
+      color: #e6e9ff;
+      font-size: 1em;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .error-message {
+      color: #ff6666;
+      font-size: 0.9em;
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .video-background {
+        transform: none;
+      }
+
+      #player {
+        width: 100vh;
+        height: 100vw;
+        min-width: 100vh;
+        min-height: 100vw;
+        transform: translate(-50%, -50%) rotate(90deg) scale(1.5);
+        top: 50%;
+        left: 50%;
+      }
+
+      .content {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      .search-container input {
+        font-size: 0.9em;
+        padding: 8px;
+      }
+
+      form {
+        padding: 15px;
+        max-width: 100%;
+      }
+
+      input, textarea {
+        font-size: 0.9em;
+        padding: 8px;
+      }
+
+      button {
+        font-size: 1em;
+        padding: 10px;
+        box-shadow: 0 0 8px rgba(102, 204, 255, 0.4), 0 0 15px rgba(102, 204, 255, 0.2);
+        animation: glow-mobile 1.5s ease-in-out infinite alternate;
+      }
+
+      @keyframes glow-mobile {
+        from {
+          box-shadow: 0 0 8px rgba(102, 204, 255, 0.4), 0 0 15px rgba(102, 204, 255, 0.2);
+        }
+        to {
+          box-shadow: 0 0 15px rgba(102, 204, 255, 0.6), 0 0 20px rgba(102, 204, 255, 0.4);
+        }
+      }
+
+      button:hover {
+        box-shadow: 0 0 20px rgba(102, 204, 255, 0.7), 0 0 25px rgba(102, 204, 255, 0.5);
+      }
+
+      li {
+        flex-wrap: wrap;
+        padding: 10px;
+        gap: 8px;
+      }
+
+      .contact-img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .contact-img.placeholder {
+        font-size: 1em;
+      }
+
+      .contact-info {
+        font-size: 0.85em;
+      }
+
+      .contact-info strong {
+        font-size: 1em;
+      }
+
+      .contact-actions {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-end;
+      }
+
+      .no-contacts {
+        font-size: 0.9em;
+      }
+
+      .error-message {
+        font-size: 0.8em;
+      }
     }
   </style>
 </head>
@@ -94,20 +434,19 @@
           fs: 0,
           start: 50,
           vq: 'medium',
-          disablekb: 1, // Disable keyboard controls
-          playsinline: 1 // Prevent iOS fullscreen
+          disablekb: 1,
+          playsinline: 1
         },
         events: {
           onReady: (event) => {
             event.target.mute();
             event.target.playVideo();
-            // Force hide YouTube UI elements
-            const iframe = document.getElementById('player');
-            iframe.contentWindow.postMessage('{"event":"command","func":"hideUI","args":""}', '*');
+            adjustVideoSize();
           },
           onStateChange: (event) => {
             if (event.data === YT.PlayerState.PLAYING) {
               document.getElementById('video-loading').classList.add('hidden');
+              adjustVideoSize();
             }
             if (event.data === YT.PlayerState.ENDED) {
               player.playVideoAt(50);
@@ -117,7 +456,33 @@
       });
     }
 
-    // Phonebook Functionality
+    function adjustVideoSize() {
+      const playerElement = document.getElementById('player');
+      if (!playerElement) return;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isMobile = vw <= 600;
+
+      if (isMobile) {
+        const scale = Math.max(vh / vw, vw / vh) * 1.5;
+        playerElement.style.width = `${vh}px`;
+        playerElement.style.height = `${vw}px`;
+        playerElement.style.minWidth = `${vh}px`;
+        playerElement.style.minHeight = `${vw}px`;
+        playerElement.style.transform = `translate(-50%, -50%) rotate(90deg) scale(${scale})`;
+      } else {
+        playerElement.style.width = `${vw}px`;
+        playerElement.style.height = `${vh}px`;
+        playerElement.style.minWidth = `${vw}px`;
+        playerElement.style.minHeight = `${vh}px`;
+        playerElement.style.transform = 'none';
+      }
+    }
+
+    window.addEventListener('resize', adjustVideoSize);
+    window.addEventListener('orientationchange', adjustVideoSize);
+
     const apiUrl = window.location.hostname.includes('localhost') ? 'http://localhost:5000/api' : '/api';
     const form = document.getElementById('contact-form');
     const contactList = document.getElementById('contact-list');

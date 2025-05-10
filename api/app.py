@@ -47,11 +47,13 @@ def get_contacts():
 def add_contact():
     try:
         contact = request.get_json()
+        if not contact.get('name') or not contact.get('phone'):
+            return jsonify({"error": "Name and phone are required"}), 400
         logger.info(f"Adding contact: {contact}")
         contact.setdefault('email', '')
         contact.setdefault('bio', '')
         contact.setdefault('profilePic', '')
-        contact['id'] = str(uuid.uuid4())  # Add unique ID
+        contact['id'] = str(uuid.uuid4())
         contacts.append(contact)
         save_contacts(contacts)
         return jsonify(contact), 201
@@ -63,6 +65,8 @@ def add_contact():
 def update_contact(id):
     try:
         contact = request.get_json()
+        if not contact.get('name') or not contact.get('phone'):
+            return jsonify({"error": "Name and phone are required"}), 400
         logger.info(f"Updating contact ID {id}: {contact}")
         for i, c in enumerate(contacts):
             if c['id'] == id:
