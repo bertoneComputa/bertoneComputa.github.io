@@ -19,6 +19,14 @@ VERCEL_CONTACTS_FILE = '/tmp/contacts.txt'
 CONTACTS_FILE = VERCEL_CONTACTS_FILE if os.getenv('VERCEL') else REPO_CONTACTS_FILE
 file_lock = Lock()
 
+def escape_field(field):
+    """Escape '|' characters in a field to prevent parsing issues."""
+    return str(field).replace('|', '\\|') if field else ''
+
+def unescape_field(field):
+    """Unescape '|' characters when reading a field."""
+    return field.replace('\\|', '|') if field else ''
+
 def load_contacts():
     contacts = []
     if os.path.exists(CONTACTS_FILE):
@@ -28,20 +36,24 @@ def load_contacts():
                     line = line.strip()
                     if line:
                         try:
-                            contact_id, name, phone, email, bio, profilePic = line.split('|', 5)
+                            parts = line.split('|', 5)
+                            if len(parts) != 6:
+                                logger.warning(f"Skipping malformed line in {CONTACTS_FILE}: {line}")
+                                continue
+                            contact_id, name, phone, email, bio, profilePic = parts
                             contacts.append({
                                 'id': contact_id,
-                                'name': name,
-                                'phone': phone,
-                                'email': email,
-                                'bio': bio,
-                                'profilePic': profilePic
+                                'name': unescape_field(name),
+                                'phone': unescape_field(phone),
+                                'email': unescape_field(email),
+                                'bio': unescape_field(bio),
+                                'profilePic': unescape_field(profilePic)
                             })
                         except ValueError:
                             logger.warning(f"Skipping malformed line in {CONTACTS_FILE}: {line}")
         except Exception as e:
             logger.error(f"Error loading contacts from {CONTACTS_FILE}: {str(e)}")
-    # If on Vercel, copy contacts.txt to repo for persistence
+    # Copy to repo for persistence if on Vercel
     if os.getenv('VERCEL') and os.path.exists(CONTACTS_FILE):
         try:
             shutil.copy(CONTACTS_FILE, REPO_CONTACTS_FILE)
@@ -54,8 +66,8 @@ def save_contacts(contacts):
         with file_lock:
             with open(CONTACTS_FILE, 'w', encoding='utf-8') as f:
                 for contact in contacts:
-                    f.write(f"{contact['id']}|{contact['name']}|{contact['phone']}|{contact['email']}|{contact['bio']}|{contact['profilePic']}\n")
-        # If on Vercel, copy to repo contacts.txt
+                    f.write(f"{contact['id']}|{escape_field(contact['name'])}|{escape_field(contact['phone'])}|{escape_field(contact['email'])}|{escape_field(contact['bio'])}|{escape_field(contact['profilePic'])}\n")
+        # Copy to repo if on Vercel
         if os.getenv('VERCEL'):
             try:
                 shutil.copy(CONTACTS_FILE, REPO_CONTACTS_FILE)
