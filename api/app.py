@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
-import json
 import os
 from threading import Lock
 import uuid
@@ -13,25 +12,40 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Use /tmp for Vercel writable storage
-CONTACTS_FILE = '/tmp/contacts.json' if os.getenv('VERCEL') else 'contacts.json'
+# File for persistent storage
+CONTACTS_FILE = 'contacts.txt'
 file_lock = Lock()
 
 def load_contacts():
+    contacts = []
     if os.path.exists(CONTACTS_FILE):
         try:
-            with open(CONTACTS_FILE, 'r') as f:
-                return json.load(f)
+            with open(CONTACTS_FILE, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        try:
+                            contact_id, name, phone, email, bio, profilePic = line.split('|', 5)
+                            contacts.append({
+                                'id': contact_id,
+                                'name': name,
+                                'phone': phone,
+                                'email': email,
+                                'bio': bio,
+                                'profilePic': profilePic
+                            })
+                        except ValueError:
+                            logger.warning(f"Skipping malformed line in contacts.txt: {line}")
         except Exception as e:
             logger.error(f"Error loading contacts from file: {str(e)}")
-            return []
-    return []
+    return contacts
 
 def save_contacts(contacts):
     try:
         with file_lock:
-            with open(CONTACTS_FILE, 'w') as f:
-                json.dump(contacts, f, indent=2)
+            with open(CONTACTS_FILE, 'w', encoding='utf-8') as f:
+                for contact in contacts:
+                    f.write(f"{contact['id']}|{contact['name']}|{contact['phone']}|{contact['email']}|{contact['bio']}|{contact['profilePic']}\n")
     except Exception as e:
         logger.error(f"Error saving contacts to file: {str(e)}")
         raise
