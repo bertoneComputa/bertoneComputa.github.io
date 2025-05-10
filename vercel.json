@@ -19,5 +19,8 @@
       "src": "/(.*)",
       "dest": "/public/index.html"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  }
 }

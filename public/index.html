@@ -36,6 +36,8 @@
       height: 100%;
       object-fit: cover;
       pointer-events: none; /* Makes video non-interactive */
+      min-width: 100vw; /* Ensures full coverage */
+      min-height: 100vh;
     }
 
     /* Overlay to obscure YouTube UI */
@@ -276,7 +278,17 @@
       display: none;
     }
 
+    /* Mobile-specific styles */
     @media (max-width: 600px) {
+      .video-background {
+        transform: scale(1.1); /* Zoom in to ensure full coverage */
+      }
+
+      #player {
+        min-width: 100vw;
+        min-height: 100vh;
+      }
+
       .content {
         padding: 15px;
       }

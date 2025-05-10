@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
+import json
+import os
+from threading import Lock
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -9,7 +12,30 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-contacts = []
+# File for persistent storage
+CONTACTS_FILE = 'contacts.json'
+file_lock = Lock()
+
+def load_contacts():
+    if os.path.exists(CONTACTS_FILE):
+        try:
+            with open(CONTACTS_FILE, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Error loading contacts from file: {str(e)}")
+            return []
+    return []
+
+def save_contacts(contacts):
+    try:
+        with file_lock:
+            with open(CONTACTS_FILE, 'w') as f:
+                json.dump(contacts, f, indent=2)
+    except Exception as e:
+        logger.error(f"Error saving contacts to file: {str(e)}")
+        raise
+
+contacts = load_contacts()
 
 @app.route('/api/contacts', methods=['GET'])
 def get_contacts():
@@ -25,6 +51,7 @@ def add_contact():
         contact.setdefault('bio', '')
         contact.setdefault('profilePic', '')
         contacts.append(contact)
+        save_contacts(contacts)
         return jsonify(contact), 201
     except Exception as e:
         logger.error(f"Error adding contact: {str(e)}")
@@ -42,6 +69,7 @@ def update_contact(id):
         contact.setdefault('bio', '')
         contact.setdefault('profilePic', '')
         contacts[id] = contact
+        save_contacts(contacts)
         return jsonify(contact)
     except Exception as e:
         logger.error(f"Error updating contact: {str(e)}")
@@ -55,6 +83,7 @@ def delete_contact(id):
             return jsonify({"error": "Contact not found"}), 404
         contact = contacts.pop(id)
         logger.info(f"Deleted contact ID {id}: {contact}")
+        save_contacts(contacts)
         return jsonify(contact)
     except Exception as e:
         logger.error(f"Error deleting contact: {str(e)}")
