@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
-import requests
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -60,32 +59,6 @@ def delete_contact(id):
     except Exception as e:
         logger.error(f"Error deleting contact: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-@app.route('/api/chat', methods=['POST'])
-def chat():
-    try:
-        data = request.get_json()
-        input_text = data.get('input', '')
-        logger.info(f"Chat input: {input_text}")
-        if not input_text:
-            logger.warning("No input provided for chat")
-            return jsonify({'error': 'No input provided'}), 400
-        
-        # Proxy request to JSONPlaceholder
-        response = requests.get('https://jsonplaceholder.typicode.com/users/1')
-        if response.status_code != 200:
-            logger.error(f"JSONPlaceholder API error: {response.status_code}")
-            return jsonify({'error': 'Failed to fetch data from API'}), 500
-        
-        user_data = response.json()
-        logger.info(f"JSONPlaceholder response: {user_data}")
-        return jsonify({
-            'name': user_data.get('name', 'Unknown'),
-            'phone': user_data.get('phone', 'No phone')
-        })
-    except Exception as e:
-        logger.error(f"Error in chat: {str(e)}")
-        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     logger.info("Starting Flask server on http://0.0.0.0:5000")
