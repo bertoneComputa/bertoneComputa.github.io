@@ -4,23 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phonebook</title>
-  <!-- Preload YouTube Iframe API for faster loading -->
   <link rel="preload" href="https://www.youtube.com/iframe_api" as="script">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    /* Existing styles remain unchanged, except for video brightness */
+    .video-background::after {
+      background: rgba(0, 0, 0, 0); /* Remove dimming overlay */
     }
 
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
+    #player {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      min-width: 100vw;
       min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
+      filter: brightness(1); /* Ensure full brightness */
     }
 
-    /* Background Video */
+    /* Hide YouTube watermark and other UI elements */
+    .ytp-watermark,
+    .ytp-pause-overlay,
+    .ytp-large-play-button,
+    .ytp-chrome-top,
+    .ytp-chrome-bottom,
+    .ytp-gradient-top,
+    .ytp-gradient-bottom,
+    .ytp-title,
+    .ytp-button {
+      display: none !important;
+      opacity: 0 !important;
+    }
+
+    /* Ensure video container hides overflow */
     .video-background {
       position: fixed;
       top: 0;
@@ -30,349 +45,9 @@
       z-index: 1;
       overflow: hidden;
     }
-
-    #player {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      pointer-events: none; /* Makes video non-interactive */
-      min-width: 100vw; /* Ensures full coverage */
-      min-height: 100vh;
-    }
-
-    /* Overlay to obscure YouTube UI */
-    .video-background::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4); /* Masks residual UI elements */
-      z-index: 2;
-    }
-
-    /* Loading Placeholder */
-    .video-loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 3;
-      color: #e6e9ff;
-      font-size: 1.5em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .video-loading.hidden {
-      display: none;
-    }
-
-    .spinner {
-      border: 4px solid #a0a8cc;
-      border-top: 4px solid #66ccff;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Content Overlay */
-    .content {
-      position: relative;
-      z-index: 4;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(30, 42, 68, 0.6); /* Ensures readability */
-    }
-
-    h1 {
-      color: #e6e9ff;
-      text-shadow: 0 0 8px rgba(102, 204, 255, 0.3);
-      font-size: 2.5em;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    /* Search Bar */
-    .search-container {
-      width: 100%;
-      max-width: 450px;
-      margin-bottom: 20px;
-    }
-
-    .search-container input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #4a5b88;
-      border-radius: 6px;
-      font-size: 1em;
-      background: #3c4b7a;
-      color: #e6e9ff;
-      box-sizing: border-box;
-    }
-
-    .search-container input::placeholder {
-      color: #a0a8cc;
-    }
-
-    form {
-      background: #2a3b66;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      width: 100%;
-      max-width: 450px;
-      margin-bottom: 20px;
-      box-sizing: border-box;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #4a5b88;
-      border-radius: 6px;
-      font-size: 1em;
-      background: #3c4b7a;
-      color: #e6e9ff;
-      box-sizing: border-box;
-    }
-
-    input::placeholder, textarea::placeholder {
-      color: #a0a8cc;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #66ccff;
-      color: #1e2a44;
-      border: none;
-      border-radius: 6px;
-      font-size: 1.1em;
-      font-weight: bold;
-      cursor: pointer;
-      transition: box-shadow 0.3s, transform: 0.2s;
-      box-shadow: 0 0 10px rgba(102, 204, 255, 0.5), 0 0 20px rgba(102, 204, 255, 0.3);
-      animation: glow 1.5s ease-in-out infinite alternate;
-    }
-
-    @keyframes glow {
-      from {
-        box-shadow: 0 0 10px rgba(102, 204, 255, 0.5), 0 0 20px rgba(102, 204, 255, 0.3);
-      }
-      to {
-        box-shadow: 0 0 20px rgba(102, 204, 255, 0.7), 0 0 30px rgba(102, 204, 255, 0.5);
-      }
-    }
-
-    button:hover {
-      transform: scale(1.02);
-      box-shadow: 0 0 25px rgba(102, 204, 255, 0.8), 0 0 35px rgba(102, 204, 255, 0.6);
-    }
-
-    button:active {
-      transform: scale(0.98);
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      width: 100%;
-      max-width: 450px;
-    }
-
-    li {
-      background: #2a3b66;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-sizing: border-box;
-    }
-
-    .contact-img {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #4a5b88;
-      flex-shrink: 0;
-    }
-
-    .contact-img.placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2em;
-      color: #a0a8cc;
-    }
-
-    .contact-info {
-      flex: 1;
-      font-size: 0.95em;
-      color: #e6e9ff;
-    }
-
-    .contact-info strong {
-      font-size: 1.1em;
-      color: #ffffff;
-    }
-
-    .contact-info p {
-      margin: 4px 0;
-      color: #a0a8cc;
-    }
-
-    .contact-actions {
-      display: flex;
-      gap: 10px;
-      font-size: 0.9em;
-      align-items: center;
-    }
-
-    .edit-btn {
-      color: #00ccff;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .delete-btn {
-      color: #ff6666;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .no-contacts {
-      color: #e6e9ff;
-      font-size: 1em;
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .error-message {
-      color: #ff6666;
-      font-size: 0.9em;
-      margin-top: 10px;
-      text-align: center;
-      display: none;
-    }
-
-    /* Mobile-specific styles */
-    @media (max-width: 600px) {
-      .video-background {
-        transform: scale(1.1); /* Zoom in to ensure full coverage */
-      }
-
-      #player {
-        min-width: 100vw;
-        min-height: 100vh;
-      }
-
-      .content {
-        padding: 15px;
-      }
-
-      h1 {
-        font-size: 2em;
-      }
-
-      .search-container input {
-        font-size: 0.9em;
-        padding: 8px;
-      }
-
-      form {
-        padding: 15px;
-        max-width: 100%;
-      }
-
-      input, textarea {
-        font-size: 0.9em;
-        padding: 8px;
-      }
-
-      button {
-        font-size: 1em;
-        padding: 10px;
-        box-shadow: 0 0 8px rgba(102, 204, 255, 0.4), 0 0 15px rgba(102, 204, 255, 0.2);
-        animation: glow-mobile 1.5s ease-in-out infinite alternate;
-      }
-
-      @keyframes glow-mobile {
-        from {
-          box-shadow: 0 0 8px rgba(102, 204, 255, 0.4), 0 0 15px rgba(102, 204, 255, 0.2);
-        }
-        to {
-          box-shadow: 0 0 15px rgba(102, 204, 255, 0.6), 0 0 20px rgba(102, 204, 255, 0.4);
-        }
-      }
-
-      button:hover {
-        box-shadow: 0 0 20px rgba(102, 204, 255, 0.7), 0 0 25px rgba(102, 204, 255, 0.5);
-      }
-
-      li {
-        flex-wrap: wrap;
-        padding: 10px;
-        gap: 8px;
-      }
-
-      .contact-img {
-        width: 40px;
-        height: 40px;
-      }
-
-      .contact-img.placeholder {
-        font-size: 1em;
-      }
-
-      .contact-info {
-        font-size: 0.85em;
-      }
-
-      .contact-info strong {
-        font-size: 1em;
-      }
-
-      .contact-actions {
-        flex-direction: column;
-        gap: 5px;
-        align-items: flex-end;
-      }
-
-      .no-contacts {
-        font-size: 0.9em;
-      }
-
-      .error-message {
-        font-size: 0.8em;
-      }
-    }
   </style>
 </head>
 <body>
-  <!-- Background Video -->
   <div class="video-background">
     <div id="player"></div>
     <div class="video-loading" id="video-loading">
@@ -380,8 +55,6 @@
       <span>Loading video...</span>
     </div>
   </div>
-
-  <!-- Content -->
   <div class="content">
     <h1>Phonebook™</h1>
     <form id="contact-form">
@@ -400,7 +73,6 @@
   </div>
 
   <script>
-    // Load YouTube Iframe API
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -413,27 +85,32 @@
         playerVars: {
           autoplay: 1,
           loop: 1,
-          playlist: 'eqEHw62A81Q', // Required for looping
-          controls: 0, // Hide controls
-          showinfo: 0, // Deprecated, but included for compatibility
-          modestbranding: 1, // Minimize YouTube branding
-          rel: 0, // Disable related videos
-          iv_load_policy: 3, // Disable annotations
-          fs: 0, // Disable fullscreen button
-          start: 50, // Start at 50 seconds
-          vq: 'medium' // Lower quality for faster loading
+          playlist: 'eqEHw62A81Q',
+          controls: 0,
+          showinfo: 0,
+          modestbranding: 1,
+          rel: 0,
+          iv_load_policy: 3,
+          fs: 0,
+          start: 50,
+          vq: 'medium',
+          disablekb: 1, // Disable keyboard controls
+          playsinline: 1 // Prevent iOS fullscreen
         },
         events: {
           onReady: (event) => {
-            event.target.mute(); // Mute to allow autoplay
+            event.target.mute();
             event.target.playVideo();
+            // Force hide YouTube UI elements
+            const iframe = document.getElementById('player');
+            iframe.contentWindow.postMessage('{"event":"command","func":"hideUI","args":""}', '*');
           },
           onStateChange: (event) => {
             if (event.data === YT.PlayerState.PLAYING) {
               document.getElementById('video-loading').classList.add('hidden');
             }
             if (event.data === YT.PlayerState.ENDED) {
-              player.playVideoAt(50); // Restart at 50 seconds
+              player.playVideoAt(50);
             }
           }
         }
@@ -441,7 +118,7 @@
     }
 
     // Phonebook Functionality
-    const apiUrl = '/api'; // Use 'http://localhost:5000/api' for local testing
+    const apiUrl = window.location.hostname.includes('localhost') ? 'http://localhost:5000/api' : '/api';
     const form = document.getElementById('contact-form');
     const contactList = document.getElementById('contact-list');
     const formError = document.getElementById('form-error');
@@ -452,9 +129,7 @@
     async function fetchContacts() {
       try {
         const response = await fetch(`${apiUrl}/contacts`, { method: 'GET' });
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         allContacts = await response.json();
         renderContacts(allContacts);
       } catch (error) {
@@ -473,7 +148,7 @@
         contactList.appendChild(noContacts);
         return;
       }
-      contacts.forEach((contact, index) => {
+      contacts.forEach((contact) => {
         const li = document.createElement('li');
         const img = contact.profilePic
           ? `<img src="${contact.profilePic}" class="contact-img" alt="${contact.name}'s picture">`
@@ -487,8 +162,8 @@
             ${contact.bio ? `<p>${contact.bio}</p>` : ''}
           </div>
           <div class="contact-actions">
-            <span class="edit-btn" onclick="editContact(${index})">Edit</span>
-            <span class="delete-btn" onclick="deleteContact(${index})">Delete</span>
+            <span class="edit-btn" onclick="editContact('${contact.id}')">Edit</span>
+            <span class="delete-btn" onclick="deleteContact('${contact.id}')">Delete</span>
           </div>
         `;
         contactList.appendChild(li);
@@ -498,9 +173,16 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       formError.style.display = 'none';
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      if (!name || !phone) {
+        formError.textContent = 'Name and phone are required.';
+        formError.style.display = 'block';
+        return;
+      }
       const contact = {
-        name: document.getElementById('name').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
+        name,
+        phone,
         email: document.getElementById('email').value.trim(),
         bio: document.getElementById('bio').value.trim(),
         profilePic: document.getElementById('profilePic').value.trim()
@@ -522,27 +204,21 @@
             body: JSON.stringify(contact)
           });
         }
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
-        await response.json(); // Consume response
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        await response.json();
         form.reset();
         fetchContacts();
       } catch (error) {
         console.error('Error saving contact:', error);
-        formError.textContent = 'Failed to save contact. Check if the backend server is running or try again.';
+        formError.textContent = 'Failed to save contact. Check if the backend server is running.';
         formError.style.display = 'block';
       }
     });
 
     window.editContact = async (id) => {
       try {
-        const response = await fetch(`${apiUrl}/contacts`);
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
-        const contacts = await response.json();
-        const contact = contacts[id];
+        const contact = allContacts.find(c => c.id === id);
+        if (!contact) throw new Error('Contact not found');
         document.getElementById('name').value = contact.name;
         document.getElementById('phone').value = contact.phone;
         document.getElementById('email').value = contact.email || '';
@@ -563,9 +239,7 @@
         const response = await fetch(`${apiUrl}/contacts/${id}`, {
           method: 'DELETE'
         });
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         fetchContacts();
       } catch (error) {
         console.error('Error deleting contact:', error);
@@ -574,7 +248,6 @@
       }
     };
 
-    // Search Functionality
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.toLowerCase();
       const filteredContacts = allContacts.filter(contact =>

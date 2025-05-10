@@ -4,6 +4,7 @@ import logging
 import json
 import os
 from threading import Lock
+import uuid
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -12,8 +13,8 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# File for persistent storage
-CONTACTS_FILE = 'contacts.json'
+# Use /tmp for Vercel writable storage
+CONTACTS_FILE = '/tmp/contacts.json' if os.getenv('VERCEL') else 'contacts.json'
 file_lock = Lock()
 
 def load_contacts():
@@ -50,6 +51,7 @@ def add_contact():
         contact.setdefault('email', '')
         contact.setdefault('bio', '')
         contact.setdefault('profilePic', '')
+        contact['id'] = str(uuid.uuid4())  # Add unique ID
         contacts.append(contact)
         save_contacts(contacts)
         return jsonify(contact), 201
@@ -57,34 +59,37 @@ def add_contact():
         logger.error(f"Error adding contact: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/contacts/<int:id>', methods=['PUT'])
+@app.route('/api/contacts/<string:id>', methods=['PUT'])
 def update_contact(id):
     try:
-        if id < 0 or id >= len(contacts):
-            logger.warning(f"Contact ID {id} not found")
-            return jsonify({"error": "Contact not found"}), 404
         contact = request.get_json()
         logger.info(f"Updating contact ID {id}: {contact}")
-        contact.setdefault('email', '')
-        contact.setdefault('bio', '')
-        contact.setdefault('profilePic', '')
-        contacts[id] = contact
-        save_contacts(contacts)
-        return jsonify(contact)
+        for i, c in enumerate(contacts):
+            if c['id'] == id:
+                contact.setdefault('email', '')
+                contact.setdefault('bio', '')
+                contact.setdefault('profilePic', '')
+                contact['id'] = id
+                contacts[i] = contact
+                save_contacts(contacts)
+                return jsonify(contact)
+        logger.warning(f"Contact ID {id} not found")
+        return jsonify({"error": "Contact not found"}), 404
     except Exception as e:
         logger.error(f"Error updating contact: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/contacts/<int:id>', methods=['DELETE'])
+@app.route('/api/contacts/<string:id>', methods=['DELETE'])
 def delete_contact(id):
     try:
-        if id < 0 or id >= len(contacts):
-            logger.warning(f"Contact ID {id} not found")
-            return jsonify({"error": "Contact not found"}), 404
-        contact = contacts.pop(id)
-        logger.info(f"Deleted contact ID {id}: {contact}")
-        save_contacts(contacts)
-        return jsonify(contact)
+        for i, c in enumerate(contacts):
+            if c['id'] == id:
+                contact = contacts.pop(i)
+                logger.info(f"Deleted contact ID {id}: {contact}")
+                save_contacts(contacts)
+                return jsonify(contact)
+        logger.warning(f"Contact ID {id} not found")
+        return jsonify({"error": "Contact not found"}), 404
     except Exception as e:
         logger.error(f"Error deleting contact: {str(e)}")
         return jsonify({"error": str(e)}), 500
