@@ -1,0 +1,55 @@
+__________.__                        ___.                  __    
+\______   \  |__   ____   ____   ____\_ |__   ____   ____ |  | __
+ |     ___/  |  \ /  _ \ /    \_/ __ \| __ \ /  _ \ /  _ \|  |/ /
+ |    |   |   Y  (  <_> )   |  \  ___/| \_\ (  <_> |  <_> )    < 
+ |____|   |___|  /\____/|___|  /\___  >___  /\____/ \____/|__|_ \
+               \/            \/     \/    \/                   \/
+
+Phonebook - 12.05.2025
+Groupe:
+    - Albert
+    - Minwoo
+    - Sarah
+    - Alexandre
+
+Phonebook est un site web qui permet au utilisateur d ajouter des contacts a une base de donne et de la parcourir afin de trouver des numero de telephone
+
+Architecture:
+
+    - Frontend
+        - html
+        - css
+        - java
+
+    - Backend - python(server sur VERCEL: phonebook-5jg982svi-bertones-projects.vercel.app - phonebook-omega-six.vercel.app)
+
+    +----------------+       +----------------+       +----------------+
+    |  Frontend      |  <--> |  Backend       |  <--> |  Stockage      |
+    | (index.html)   |  API  | (app.py)       |  R/W  | (contacts.txt) |
+    | - Vidéo YouTube|       | - GET/POST/...         | - Données      |
+    | - UI Contacts  |       |                |       | persistantes   |
+    +----------------+       +----------------+       +----------------+
+
+    User Interface:
+
+    +----------------------+
+    |   Vidéo YouTube      |
+    |   (Fond Plein Écran) |
+    +----------------------+
+    |      Interface       |
+    |  +---------------+   |
+    |  | Formulaire    |   |
+    |  | - Nom, Tel... |   |
+    |  +---------------+   |
+    |  +---------------+   |
+    |  | Recherche     |   |
+    |  | - Par Nom/Tel |   |
+    |  +---------------+   |
+    |  +---------------+   |
+    |  | Liste Contacts|   |
+    |  | - Éditer/Supp.|   |
+    |  +---------------+   |
+    +----------------------+
+
+Credits: 
+    - Video Youtube: https://www.youtube.com/watch?v=eqEHw62A81Q

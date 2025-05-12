@@ -15,7 +15,7 @@
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       min-height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
       position: relative;
     }
 
@@ -31,14 +31,15 @@
 
     #player {
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 50%;
+      left: 50%;
       width: 100vw;
       height: 100vh;
-      object-fit: cover;
-      pointer-events: none;
       min-width: 100vw;
       min-height: 100vh;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      pointer-events: none;
     }
 
     .video-background::after {
@@ -52,6 +53,7 @@
       z-index: 2;
     }
 
+    /* Hide all YouTube UI elements */
     .ytp-watermark,
     .ytp-pause-overlay,
     .ytp-large-play-button,
@@ -60,7 +62,23 @@
     .ytp-gradient-top,
     .ytp-gradient-bottom,
     .ytp-title,
-    .ytp-button {
+    .ytp-title-text,
+    .ytp-button,
+    .ytp-progress-bar,
+    .ytp-chrome-controls,
+    .ytp-settings-button,
+    .ytp-fullscreen-button,
+    .ytp-time-display,
+    .ytp-share-button,
+    .ytp-impression-link,
+    .ytp-cards-button,
+    .ytp-card-teaser,
+    .ytp-card-trigger,
+    .ytp-ad-overlay,
+    .ytp-ad-text,
+    .ytp-ad-image,
+    .ytp-ad-skip-button,
+    .ytp-show-cards-title {
       display: none !important;
       opacity: 0 !important;
     }
@@ -116,6 +134,12 @@
       padding: 20px;
       text-align: center;
       position: relative;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .phonebook-container::-webkit-scrollbar {
+      display: none;
     }
 
     h1 {
@@ -295,17 +319,17 @@
 
     @media (max-width: 600px) {
       .video-background {
-        transform: none;
+        width: 100%;
+        height: 100%;
       }
 
       #player {
-        width: 100vh;
-        height: 100vw;
-        min-width: 100vh;
-        min-height: 100vw;
-        transform: translate(-50%, -50%) rotate(90deg) scale(1.5);
-        top: 50%;
-        left: 50%;
+        width: 100vw;
+        height: 100vh;
+        min-width: 100vw;
+        min-height: 100vh;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
       }
 
       .content {
@@ -323,6 +347,12 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .phonebook-container::-webkit-scrollbar {
+        display: none;
       }
 
       h1 {
@@ -453,7 +483,8 @@
           start: 50,
           vq: 'medium',
           disablekb: 1,
-          playsinline: 1
+          playsinline: 1,
+          enablejsapi: 1
         },
         events: {
           onReady: (event) => {
@@ -481,22 +512,23 @@
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const isMobile = vw <= 600;
+      const videoAspectRatio = 16 / 9;
+      const windowAspectRatio = vw / vh;
 
-      if (isMobile) {
-        const scale = Math.max(vh / vw, vw / vh) * 1.5;
-        playerElement.style.width = `${vh}px`;
-        playerElement.style.height = `${vw}px`;
-        playerElement.style.minWidth = `${vh}px`;
-        playerElement.style.minHeight = `${vw}px`;
-        playerElement.style.transform = `translate(-50%, -50%) rotate(90deg) scale(${scale})`;
+      let width, height;
+      if (windowAspectRatio > videoAspectRatio) {
+        width = vw;
+        height = vw / videoAspectRatio;
       } else {
-        playerElement.style.width = `${vw}px`;
-        playerElement.style.height = `${vh}px`;
-        playerElement.style.minWidth = `${vw}px`;
-        playerElement.style.minHeight = `${vh}px`;
-        playerElement.style.transform = 'none';
+        width = vh * videoAspectRatio;
+        height = vh;
       }
+
+      playerElement.style.width = `${width}px`;
+      playerElement.style.height = `${height}px`;
+      playerElement.style.minWidth = `${width}px`;
+      playerElement.style.minHeight = `${height}px`;
+      playerElement.style.transform = 'translate(-50%, -50%)';
     }
 
     function centerPhonebook() {
@@ -507,6 +539,7 @@
         contentElement.style.justifyContent = 'center';
         contentElement.style.alignItems = 'center';
         phonebookContainer.style.maxHeight = window.innerWidth <= 600 ? '90vh' : '80vh';
+        phonebookContainer.style.margin = 'auto';
       }
     }
 
@@ -515,8 +548,10 @@
       centerPhonebook();
     });
     window.addEventListener('orientationchange', () => {
-      adjustVideoSize();
-      centerPhonebook();
+      setTimeout(() => {
+        adjustVideoSize();
+        centerPhonebook();
+      }, 100);
     });
     window.addEventListener('load', centerPhonebook);
 
